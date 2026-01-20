@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GIGA21 Ultra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
+        body { background: #050505; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-user-select: none; overflow-x: hidden; }
+        .gold-gradient { background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 50%, #aa771c 100%); }
+        .gold-text { background: linear-gradient(to right, #bf953f, #fcf6ba, #aa771c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .bottom-nav { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px); border-top: 1px solid rgba(191, 149, 63, 0.2); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Thumbnail Standard */
+        .movie-card { flex: 0 0 130px; width: 130px; }
+        .movie-card img, .grid-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 1rem; }
+        
+        /* Title Control */
+        .title-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; height: 2.4em; }
+        
+        /* Shimmer Effect */
+        .shimmer { background: linear-gradient(90deg, #111 25%, #1a1a1a 50%, #111 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        /* Country & Load More Cards */
+        .country-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(191, 149, 63, 0.1); }
+        .flag-icon { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(191, 149, 63, 0.3); }
+        
+        .load-more-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center Horizontal */
+            justify-content: center; /* Center Vertikal */
+            text-align: center;
+            background: linear-gradient(135deg, rgba(191, 149, 63, 0.1), rgba(5, 5, 5, 1));
+            border: 1px dashed rgba(191, 149, 63, 0.4);
+            border-radius: 1.25rem;
+            aspect-ratio: 2/3;
+            width: 100%; /* Pastikan mengisi penuh grid */
+            cursor: pointer;
+        }
+
+        .player-panel { border-radius: 24px 24px 0 0; background: #0f0f0f; border-top: 1px solid rgba(191, 149, 63, 0.3); }
+    </style>
+</head>
+<body class="pb-24">
+    
+<header class="fixed top-0 inset-x-0 z-[100] px-5 py-5 flex justify-between items-center bg-gradient-to-b from-black via-black/50 to-transparent">
+    <h1 class="text-2xl font-black gold-text uppercase tracking-tighter" onclick="location.reload()">GIGA21</h1>
+    
+    <div class="flex items-center gap-4">
+        <div onclick="toggleAdultMode()" id="adult-toggle" class="relative w-10 h-5 bg-white/10 rounded-full border border-white/10 transition-all duration-500 cursor-pointer">
+            <div id="adult-dot" class="absolute top-1 left-1 w-2.5 h-2.5 bg-gray-500 rounded-full transition-all duration-500 flex items-center justify-center">
+                <span id="adult-label" class="absolute -top-5 text-[7px] font-black text-gray-500 tracking-widest opacity-0 transition-opacity">ULTRA</span>
+            </div>
+        </div>
+
+        <div class="w-7 h-7 rounded-full gold-gradient flex items-center justify-center shadow-lg" onclick="toggleSearch()">
+            <i class="fas fa-search text-black text-sm"></i>
+        </div>
+    </div>
+</header>
+    
+    <div id="search-overlay" class="fixed inset-0 z-[200] bg-black/95 hidden p-6 overflow-y-auto no-scrollbar">
+        <div class="flex items-center gap-4 mb-8 pt-4">
+            <i class="fas fa-arrow-left text-xl text-[#bf953f]" onclick="toggleSearch()"></i>
+            <input id="search-input" type="text" placeholder="Cari film..." class="w-full bg-transparent border-b border-[#bf953f] py-3 outline-none text-xl font-bold">
+        </div>
+        <div id="search-results" class="grid grid-cols-3 gap-3"></div>
+    </div>
+
+    <section class="relative h-[60vh] w-full flex items-end p-6 overflow-hidden">
+        <div id="hero-bg" class="absolute inset-0 z-0 bg-cover bg-center scale-110 transition-all duration-1000"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/20 to-transparent z-10"></div>
+        <div class="relative z-20 w-full pb-4">
+            <h2 id="hero-title" class="text-4xl font-black mb-3 leading-tight uppercase tracking-tighter">...</h2>
+            <div class="flex gap-3 mb-6">
+                <span class="text-[10px] bg-white/10 px-3 py-1.5 rounded-lg font-bold backdrop-blur-md border border-white/10 text-white/60">ULTRA HD 4K</span>
+                <span id="hero-year" class="text-[10px] gold-bg text-black px-3 py-1.5 rounded-lg font-black gold-gradient">2026</span>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="playHero()" class="flex-1 py-3 rounded-xl bg-white text-black font-black text-xs flex items-center justify-center gap-2 active:scale-95 transition">
+                    <i class="fas fa-play text-[10px]"></i> MULAI NONTON
+                </button>
+                <button id="btn-save-hero" onclick="toggleFavoriteHero()" class="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/10 active:scale-95 transition">
+                    <i class="fas fa-plus transition-all duration-300"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <div class="px-5 mb-8 grid grid-cols-2 gap-3 relative z-[50] -mt-4">
+        <div class="relative">
+            <button onclick="toggleDropdown('dropdown-country')" class="w-full py-3.5 px-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between active:scale-95 transition backdrop-blur-xl">
+                <div class="flex items-center gap-2 overflow-hidden">
+                    <i class="fas fa-globe-asia text-[10px] gold-text"></i>
+                    <span id="label-country" class="text-[10px] font-black uppercase tracking-widest opacity-80 truncate">Negara</span>
+                </div>
+                <i id="icon-country" class="fas fa-chevron-down text-[8px] opacity-40 transition-transform"></i>
+            </button>
+            <div id="dropdown-country" class="hidden absolute top-full left-0 right-0 mt-2 bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-2xl z-[100] max-h-[250px] overflow-y-auto no-scrollbar p-2"></div>
+        </div>
+
+        <div class="relative">
+            <button onclick="toggleDropdown('dropdown-genre')" class="w-full py-3.5 px-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between active:scale-95 transition backdrop-blur-xl">
+                <div class="flex items-center gap-2 overflow-hidden">
+                    <i class="fas fa-film text-[10px] gold-text"></i>
+                    <span id="label-genre" class="text-[10px] font-black uppercase tracking-widest opacity-80 truncate">Genre</span>
+                </div>
+                <i id="icon-genre" class="fas fa-chevron-down text-[8px] opacity-40 transition-transform"></i>
+            </button>
+            <div id="dropdown-genre" class="hidden absolute top-full left-0 right-0 mt-2 bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-2xl z-[100] max-h-[250px] overflow-y-auto no-scrollbar p-2"></div>
+        </div>
+    </div>
+
+    <main class="px-5 space-y-6">
+        <div class="flex items-center justify-between border-b border-white/5 pb-4">
+            <h3 id="grid-title" class="text-[11px] font-black uppercase tracking-[0.2em] gold-text">Trending Sekarang</h3>
+            <span id="movie-count" class="text-[9px] font-bold text-gray-600">PREMIUM SELECTION</span>
+        </div>
+        <div id="main-grid" class="grid grid-cols-3 gap-3 min-h-screen">
+            </div>
+    </main>
+
+    <div id="player-screen" class="fixed inset-0 z-[300] bg-black hidden flex flex-col overflow-y-auto no-scrollbar">
+        <div class="p-6 flex items-center justify-between">
+            <i class="fas fa-chevron-down text-2xl text-gray-500" onclick="closePlayer()"></i>
+            <span class="text-[9px] font-black gold-text tracking-widest uppercase">Ultra Cinema Mode</span>
+            <div class="w-6"></div>
+        </div>
+        <div class="w-full aspect-video bg-black">
+            <iframe id="ultra-player" src="" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <div class="p-8 player-panel -mt-6">
+            <div id="server-list" class="grid grid-cols-3 gap-3 mb-8">
+            </div>
+            <h2 id="player-title" class="text-2xl font-black mb-2 leading-tight">...</h2>
+            <div class="flex gap-4 mb-4 text-xs font-bold">
+                <span id="player-rating" class="text-yellow-500">⭐ 0.0</span>
+                <span id="player-year" class="text-gray-500">2026</span>
+            </div>
+            <p id="player-desc" class="text-sm text-gray-400 leading-relaxed opacity-70"></p>
+        </div>
+    </div>
+</body>
+
+<script>
+
+const API_KEY = '0ac7d6475232e17859d8e46b5dc9a435';
+const BASE_URL = 'https://api.themoviedb.org/3';
+const IMG_URL = 'https://image.tmdb.org/t/p/w500';
+let isAdultMode = false; // Status default OFF
+let currentEndpoint = '/trending/all/day?';
+let currentViewPage = 1;
+let featuredId = '';
+
+    const countries = [
+        { id: 'ID', name: 'Indonesia', code: 'id' },
+        { id: 'KR', name: 'Korea', code: 'kr' },
+        { id: 'JP', name: 'Jepang', code: 'jp' },
+
+        { id: 'PH', name: 'Philippines', code: 'pn' },
+        { id: 'TH', name: 'Thailand', code: 'th' },
+        { id: 'CN', name: 'China', code: 'cn' },
+        { id: 'HK', name: 'Hongkong', code: 'hk' },
+        { id: 'IN', name: 'India', code: 'in' },
+        { id: 'TR', name: 'Turki', code: 'tr' },
+        { id: 'US', name: 'USA', code: 'us' },
+        { id: 'FR', name: 'Prancis', code: 'fr' },
+        { id: 'ES', name: 'Spanyol', code: 'es' },
+        { id: 'IT', name: 'Italy', code: 'it' },
+        { id: 'GB', name: 'Inggris', code: 'gb' },
+        { id: 'RU', name: 'Rusia', code: 'ru' }
+    ];
+
+function toggleAdultMode() {
+    isAdultMode = !isAdultMode;
+    const dot = document.getElementById('adult-dot');
+    const toggle = document.getElementById('adult-toggle');
+    const label = document.getElementById('adult-label');
+
+    if (isAdultMode) {
+        // Efek Aktif (Mewah & Merah/Emas)
+        toggle.classList.replace('bg-white/10', 'bg-red-900/30');
+        toggle.classList.add('border-red-500/50');
+        dot.classList.replace('bg-gray-500', 'bg-red-500');
+        dot.style.left = '24px'; // Geser ke kanan
+        label.classList.replace('text-gray-500', 'text-red-500');
+        label.classList.remove('opacity-0');
+        label.innerText = "18+";
+    } else {
+        // Efek Non-aktif
+        toggle.classList.replace('bg-red-900/30', 'bg-white/10');
+        toggle.classList.remove('border-red-500/50');
+        dot.classList.replace('bg-red-500', 'bg-gray-500');
+        dot.style.left = '4px';
+        label.classList.add('opacity-0');
+    }
+
+    // Refresh data saat ini dengan mode baru
+    applyFilter(activeFilters.country ? 'country' : 'init', activeFilters.country || '', activeFilters.countryName || 'Trending');
+}
+
+async function initApp() {
+    // Load Hero
+    const res = await fetch(`${BASE_URL}/trending/all/day?api_key=${API_KEY}`);
+    const data = await res.json();
+    const feat = data.results[0];
+    featuredId = feat.id;
+    
+    document.getElementById('hero-bg').style.backgroundImage = `url('https://image.tmdb.org/t/p/original${feat.backdrop_path}')`;
+    document.getElementById('hero-title').innerText = feat.title || feat.name;
+    document.getElementById('hero-year').innerText = (feat.release_date || feat.first_air_date || '2026').split('-')[0];
+
+    // Render Initial Grid
+    renderGrid(data, 'main-grid', false);
+    renderDropdownMenus();
+}
+
+function renderGrid(data, containerId, isAppend = false) {
+    const container = document.getElementById(containerId);
+    if (!isAppend) {
+        container.innerHTML = '';
+        currentViewPage = 1;
+    }
+    
+    // Hapus kartu "Lainnya" yang lama
+    const oldCard = document.getElementById('next-page-card');
+    if (oldCard) oldCard.remove();
+
+    const html = data.results.filter(m => m.poster_path).map(m => `
+        <div class="w-full active:scale-95 transition mb-3" onclick="openPlayer('${m.id}', '${m.media_type || 'movie'}')">
+            <div class="relative overflow-hidden rounded-2xl border border-white/5 shadow-2xl">
+                <img src="${IMG_URL + m.poster_path}" class="grid-img">
+                <div class="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-1.5 py-0.5 rounded text-[8px] font-black gold-text">⭐ ${m.vote_average.toFixed(1)}</div>
+            </div>
+            <p class="text-[9px] mt-2 font-black uppercase text-center title-clamp opacity-80">${m.title || m.name}</p>
+        </div>
+    `).join('');
+
+    container.insertAdjacentHTML('beforeend', html);
+
+    if (data.page < data.total_pages) {
+        container.insertAdjacentHTML('beforeend', `
+            <div id="next-page-card" onclick="loadMoreData()" class="load-more-card active:scale-90 transition">
+                <div class="flex flex-col items-center justify-center w-full h-full">
+                    <div class="w-10 h-10 rounded-full gold-gradient flex items-center justify-center mb-2 shadow-lg">
+                        <i class="fas fa-plus text-black text-xs"></i>
+                    </div>
+                    <span class="text-[8px] font-black gold-text tracking-widest uppercase">Lainnya</span>
+                </div>
+            </div>
+        `);
+        currentViewPage = data.page + 1;
+    }
+}
+
+async function loadMoreData() {
+    const card = document.getElementById('next-page-card');
+    card.innerHTML = `<i class="fas fa-circle-notch fa-spin gold-text text-xl"></i>`;
+    
+    const target = !document.getElementById('search-overlay').classList.contains('hidden') ? 'search-results' : 'main-grid';
+    const res = await fetch(`${BASE_URL}${currentEndpoint}${currentEndpoint.includes('?') ? '' : '?'}api_key=${API_KEY}&include_adult=${isAdultMode}&page=${currentViewPage}`);
+    const data = await res.json();
+    
+    renderGrid(data, target, true);
+}
+
+// Search Logic yang diperbaiki
+document.getElementById('search-input').addEventListener('input', async (e) => {
+    const q = e.target.value;
+    const resultsContainer = document.getElementById('search-results');
+    
+    if (q.length < 3) {
+        resultsContainer.innerHTML = '';
+        return;
+    }
+    
+    // Set endpoint khusus search agar fungsi loadMoreData tahu apa yang harus diambil selanjutnya
+    currentEndpoint = `/search/multi?query=${encodeURIComponent(q)}&`;
+    currentViewPage = 1;
+    
+    try {
+        const res = await fetch(`${BASE_URL}${currentEndpoint}api_key=${API_KEY}&include_adult=${isAdultMode}&page=${currentViewPage}`);
+        const data = await res.json();
+        
+        // Gunakan renderGrid dengan target ke 'search-results'
+        renderGrid(data, 'search-results', false);
+    } catch (err) {
+        console.error("Search error:", err);
+    }
+});
+
+// Dropdown Logic
+function toggleDropdown(id) {
+    const menus = ['dropdown-country', 'dropdown-genre'];
+    menus.forEach(m => {
+        const el = document.getElementById(m);
+        const icon = document.getElementById('icon-' + m.replace('dropdown-', ''));
+        if (m === id) {
+            const isHidden = el.classList.contains('hidden');
+            el.classList.toggle('hidden');
+            icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        } else {
+            el.classList.add('hidden');
+            document.getElementById('icon-' + m.replace('dropdown-', '')).style.transform = 'rotate(0deg)';
+        }
+    });
+}
+
+async function renderDropdownMenus() {
+    // Dropdown Negara + Opsi Reset
+    const countryMenu = document.getElementById('dropdown-country');
+    const countryListHTML = `
+        <div onclick="applyFilter('country', '', 'Negara')" class="p-3 hover:bg-red-500/10 rounded-xl transition cursor-pointer mb-2 border-b border-white/5 flex items-center gap-2 group">
+            <i class="fas fa-undo-alt text-[10px] text-red-500 group-hover:rotate-[-45deg] transition-transform"></i>
+            <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Reset Negara</span>
+        </div>
+    ` + countries.map(c => `
+        <div onclick="applyFilter('country', '${c.id}', '${c.name}')" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition cursor-pointer mb-1">
+            <img src="https://flagcdn.com/w40/${c.code}.png" class="w-4 h-4 rounded-full object-cover">
+            <span class="text-[10px] font-bold uppercase tracking-tighter opacity-70">${c.name}</span>
+        </div>
+    `).join('');
+    countryMenu.innerHTML = countryListHTML;
+
+    // Dropdown Genre + Opsi Reset
+    const genreRes = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`);
+    const genreData = await genreRes.json();
+    const genreMenu = document.getElementById('dropdown-genre');
+    const genreListHTML = `
+        <div onclick="applyFilter('genre', '', 'Genre')" class="p-3 hover:bg-red-500/10 rounded-xl transition cursor-pointer mb-2 border-b border-white/5 flex items-center gap-2 group">
+            <i class="fas fa-trash-alt text-[10px] text-red-500 group-hover:scale-110 transition-transform"></i>
+            <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Reset Genre</span>
+        </div>
+    ` + genreData.genres.map(g => `
+        <div onclick="applyFilter('genre', '${g.id}', '${g.name}')" class="p-3 hover:bg-white/5 rounded-xl transition cursor-pointer mb-1">
+            <span class="text-[10px] font-bold uppercase tracking-tighter opacity-70">${g.name}</span>
+        </div>
+    `).join('');
+    genreMenu.innerHTML = genreListHTML;
+}
+
+// Simpan status filter yang sedang aktif
+let activeFilters = {
+    country: '',
+    genre: '',
+    countryName: '',
+    genreName: ''
+};
+
+// Fungsi Filter Pintar (Kombinasi)
+async function applyFilter(type, id, name) {
+    toggleDropdown('none');
+    
+    // 1. Update status filter berdasarkan apa yang diklik
+    if (type === 'country') {
+        activeFilters.country = id;
+        activeFilters.countryName = name;
+        document.getElementById('label-country').innerText = name;
+        document.getElementById('label-country').classList.add('gold-text');
+    } else if (type === 'genre') {
+        activeFilters.genre = id;
+        activeFilters.genreName = name;
+        document.getElementById('label-genre').innerText = name;
+        document.getElementById('label-genre').classList.add('gold-text');
+    }
+
+    // 2. Susun judul berdasarkan kombinasi
+    const displayCountry = activeFilters.countryName || "Semua Negara";
+    const displayGenre = activeFilters.genreName || "Semua Genre";
+    document.getElementById('grid-title').innerText = `${displayGenre} • ${displayCountry}`;
+
+    // 3. Bangun URL Endpoint (Logika Kombinasi)
+    // Jika country ada, tambahkan with_origin_country. Jika genre ada, tambahkan with_genres.
+    let filterParams = '';
+    if (activeFilters.country) filterParams += `&with_origin_country=${activeFilters.country}`;
+    if (activeFilters.genre) filterParams += `&with_genres=${activeFilters.genre}`;
+
+    // Jika tidak ada filter sama sekali, kembali ke trending, jika ada gunakan discover
+    if (!filterParams) {
+        currentEndpoint = '/trending/all/day?';
+    } else {
+        currentEndpoint = `/discover/movie?${filterParams.substring(1)}&`; 
+    }
+
+    // 4. Reset halaman dan ambil data
+    currentViewPage = 1;
+    const res = await fetch(`${BASE_URL}${currentEndpoint}${currentEndpoint.includes('?') ? '' : '?'}api_key=${API_KEY}&include_adult=${isAdultMode}&page=${currentViewPage}`);
+    const data = await res.json();
+    
+    renderGrid(data, 'main-grid', false);
+    
+    // Scroll halus ke arah grid
+    window.scrollTo({ top: window.innerHeight * 0.4, behavior: 'smooth' });
+}
+
+// Player Logic
+async function openPlayer(id, type) {
+    const screen = document.getElementById('player-screen');
+    screen.classList.remove('hidden');
+    document.getElementById('ultra-player').src = `https://vidsrc.to/embed/${type}/${id}`;
+    
+    const res = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}`);
+    const data = await res.json();
+    document.getElementById('player-title').innerText = data.title || data.name;
+    document.getElementById('player-desc').innerText = data.overview;
+    document.getElementById('player-rating').innerText = `⭐ ${data.vote_average.toFixed(1)}`;
+
+    const servers = [
+        {n: 'SERVER 1', u: `https://vidsrc.to/embed/${type}/${id}`},
+        {n: 'SERVER 2', u: `https://vidsrc.me/embed/${type}?tmdb=${id}`},
+        {n: 'SERVER 3', u: `https://player.autoembed.cc/embed/${type}/${id}`},
+        {n: 'SERVER 4', u: `https://multiembed.mov/?video_id=${id}&tmdb=1`},
+        {n: 'SERVER 5', u: `https://embed.su/embed/${type}/${id}`},
+        {n: 'SERVER 6', u: `https://vidsrc.cc/v2/embed/${type}/${id}`}
+    ];
+    
+    document.getElementById('server-list').innerHTML = servers.map((s, index) => `
+        <button onclick="changeServer(this, '${s.u}')" 
+            class="server-btn relative overflow-hidden group py-3 px-2 rounded-xl border border-white/5 bg-white/[0.03] backdrop-blur-md transition-all duration-300 active:scale-95">
+            <div class="absolute inset-0 bg-gradient-to-br from-[#bf953f]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            
+            <div class="relative z-10 flex flex-col items-center gap-1">
+                <span class="text-[8px] font-black text-gray-500 tracking-widest uppercase group-hover:text-[#fcf6ba] transition-colors">Line</span>
+                <span class="text-[10px] font-black text-white/80 tracking-tighter group-hover:text-white">${index + 1}</span>
+            </div>
+            
+            <div class="server-indicator absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#bf953f] to-[#aa771c] opacity-0 transition-opacity"></div>
+        </button>
+    `).join('');
+    
+    // Set server pertama sebagai aktif secara visual saat dibuka
+    setTimeout(() => {
+        const firstBtn = document.querySelector('.server-btn');
+        if(firstBtn) firstBtn.click();
+    }, 100);
+}
+
+// Fungsi tambahan untuk menghandle klik server agar ada efek "Active"
+function changeServer(btn, url) {
+    document.getElementById('ultra-player').src = url;
+    
+    // Reset semua tombol
+    document.querySelectorAll('.server-btn').forEach(b => {
+        b.classList.remove('border-[#bf953f]/50', 'bg-white/[0.08]');
+        b.querySelector('.server-indicator').classList.add('opacity-0');
+    });
+    
+    // Aktifkan tombol yang diklik
+    btn.classList.add('border-[#bf953f]/50', 'bg-white/[0.08]');
+    btn.querySelector('.server-indicator').classList.remove('opacity-0');
+}
+
+function closePlayer() {
+    document.getElementById('player-screen').classList.add('hidden');
+    document.getElementById('ultra-player').src = '';
+}
+
+function toggleFavoriteHero() {
+    const btn = document.getElementById('btn-save-hero');
+    const icon = btn.querySelector('i');
+    
+    // Cek apakah sudah disimpan atau belum (simulasi simpel)
+    if (icon.classList.contains('fa-plus')) {
+        // Efek saat disimpan
+        icon.classList.replace('fa-plus', 'fa-check');
+        icon.classList.add('gold-text');
+        btn.classList.add('border-[#bf953f]/50');
+        
+        // Opsional: Tampilkan notifikasi kecil
+        console.log("Film ditambahkan ke daftar tontonan");
+    } else {
+        // Efek saat dihapus
+        icon.classList.replace('fa-check', 'fa-plus');
+        icon.classList.remove('gold-text');
+        btn.classList.remove('border-[#bf953f]/50');
+    }
+}
+
+function toggleSearch() {
+    const overlay = document.getElementById('search-overlay');
+    const input = document.getElementById('search-input');
+    const results = document.getElementById('search-results');
+    
+    overlay.classList.toggle('hidden');
+    
+    if (overlay.classList.contains('hidden')) {
+        input.value = '';
+        results.innerHTML = '';
+        // Kembalikan endpoint ke trending saat search ditutup
+        currentEndpoint = '/trending/all/day?'; 
+    } else {
+        input.focus();
+    }
+}
+function playHero() { openPlayer(featuredId, 'movie'); }
+
+window.onclick = (e) => { if (!e.target.closest('.relative')) toggleDropdown('none'); };
+
+initApp();
+
+</script>
+</body>
+</html>
